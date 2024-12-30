@@ -10,16 +10,15 @@ after everything is up use mvn to build and package your code, after it copy it 
 
 In the end create an auto-scaling group for your app, I would advise to put 50% of cpu usage as the factor to check
 
-- JDK 11 
-- Maven 3 
-- MySQL 8
 
-# Technologies 
-- Spring MVC
-- Spring Security
-- Spring Data JPA
+# Technologies & Tools
+- AWS Ec2
+- AWS Security Group 
+- AWS Route 53 - DNS Private zones
+- AWS S3 Bucket
+- AWS Elastic LB
+- AWS Auto Scaling group
 - Maven
-- JSP
 - Tomcat
 - MySQL
 - Memcached
