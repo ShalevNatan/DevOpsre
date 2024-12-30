@@ -8,6 +8,7 @@ make sure you create the right security groups.
 
 after everything is up use mvn to build and package your code, after it copy it to the s3 and from the s3 copy it to the app instance
 
+In the end create an auto-scaling group for your app, I would advise to put 50% of cpu usage as the factor to check
 
 - JDK 11 
 - Maven 3 
