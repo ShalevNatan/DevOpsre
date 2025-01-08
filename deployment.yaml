@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jenkins
+  labels:
+    app: jenkins
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jenkins
+  template:
+    metadata:
+      labels:
+        app: jenkins
+    spec:
+      containers:
+        - name: jenkins
+          image: jenkins/jenkins:lts
+          securityContext:
+            runAsUser: 0 # Allow root access
+          ports:
+            - containerPort: 8080
+            - containerPort: 50000
+          volumeMounts:
+            - mountPath: "/var/jenkins_home"
+              name: jenkins-data
+            - mountPath: "/var/run/docker.sock" # Mount Docker socket
+              name: docker-socket
+      volumes:
+        - name: jenkins-data
+          persistentVolumeClaim:
+            claimName: jenkins-pvc
+        - name: docker-socket
+          hostPath:
+            path: /var/run/docker.sock # Host path for Docker socket
+            type: Socket
