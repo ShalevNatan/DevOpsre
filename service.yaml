@@ -1,0 +1,18 @@
+# jenkins-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins
+  labels:
+    app: jenkins
+spec:
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+    - name: agent
+      port: 50000
+      targetPort: 50000
+  selector:
+    app: jenkins
+  type: NodePort
