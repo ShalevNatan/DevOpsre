@@ -1,17 +1,17 @@
-# Use a lightweight Python image as the base
-FROM python:3.9-slim
+FROM jenkins/jenkins:lts
 
-# Set the working directory in the container
-WORKDIR /app
+USER root
 
-# Copy the current directory contents to the container
-COPY . .
+RUN apt-get update && apt-get install -y \
+    curl \
+    unzip \
+    vim \
+    git && \
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+    unzip awscliv2.zip && \
+    ./aws/install && \
+    rm -rf awscliv2.zip aws && \
+    apt-get clean
 
-# Install any dependencies (empty requirements file for simplicity)
-RUN pip install --no-cache-dir -r requirements.txt || true
 
-# Expose a port (e.g., 8000 for this example)
-EXPOSE 8000
-
-# Set the default command to run a simple HTTP server
-CMD ["python", "-m", "http.server", "8000"]
+USER jenkins
