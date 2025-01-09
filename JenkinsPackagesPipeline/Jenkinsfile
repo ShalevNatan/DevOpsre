@@ -1,0 +1,107 @@
+pipeline {
+    agent any
+    tools {
+        dockerTool 'docker12'
+    }
+    environment {
+        DOCKER_CREDS = credentials('3e63fecf-35f5-45c0-9139-8145bf6e8863')
+        DOCKER_REPO = 'shalevnatan6/shalevnatandevops'
+        REPO_URL = "github.com/ShalevNatan/DevOpsre.git" // Remove the extra https://
+        BRANCH_NAME = "jenkins"
+        FILE_NAME = "deployment.yaml"
+        NEW_IMAGE = "${DOCKER_REPO}:${BUILD_NUMBER}"
+
+    }
+    
+    stages {
+
+        stage('Checkout') {
+            steps {
+                 git branch: 'main', url: 'https://github.com/ShalevNatan/DevOpsre.git'
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                sh '''
+                docker build -t $DOCKER_REPO:latest .
+                '''
+            }
+        }
+        stage('Push Docker Image') {
+            steps {
+                sh '''
+                echo "$DOCKER_CREDS_PSW" | docker login -u "$DOCKER_CREDS_USR" --password "$(cat -)"
+                docker push $DOCKER_REPO:latest
+                '''
+            }
+        }
+        stage('Cleanup Repository') {
+            steps {
+                sh '''
+                if [ -d "repo" ]; then
+                    echo "Cleaning up existing repository directory..."
+                    rm -rf repo
+                fi
+                '''
+            }
+        }
+        stage('Clone Repository') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'cda5234b-d345-44d3-b0af-15e7a685f171', 
+                                                     usernameVariable: 'GIT_USERNAME', 
+                                                     passwordVariable: 'GIT_PASSWORD')]) {
+                        sh """
+                            git clone --branch ${BRANCH_NAME} https://${GIT_USERNAME}:${GIT_PASSWORD}@${REPO_URL} repo
+                        """
+                    }
+                }
+            }
+        }
+        stage('Update Image in deployment.yaml') {
+            steps {
+                script {
+                    dir('repo') {
+                        sh '''
+                            IMAGE_LINE=$(grep -n 'image:' ${FILE_NAME} | cut -d: -f1)
+                            if [ -z "$IMAGE_LINE" ]; then
+                                echo "No image found in the file. Exiting."
+                                exit 1
+                            fi
+                            sed -i "${IMAGE_LINE}s#image:.*#image: ${NEW_IMAGE}#" ${FILE_NAME}
+                        '''
+                    }
+                }
+            }
+        }
+        stage('Commit and Push Changes') {
+            steps {
+                script {
+                    dir('repo') {
+                        withCredentials([usernamePassword(credentialsId: 'cda5234b-d345-44d3-b0af-15e7a685f171', 
+                                                         usernameVariable: 'GIT_USERNAME', 
+                                                         passwordVariable: 'GIT_PASSWORD')]) {
+                            sh '''
+                                git config user.name "Jenkins CI"
+                                git config user.email "jenkins@example.com"
+                                git add ${FILE_NAME}
+                                git commit -m "Updated image value to ${NEW_IMAGE}"
+                                git push https://${GIT_USERNAME}:${GIT_PASSWORD}@${REPO_URL} ${BRANCH_NAME}
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+        stage('Cleanup Repoagain') {
+            steps {
+                sh '''
+                if [ -d "repo" ]; then
+                    echo "Cleaning up existing repository directory..."
+                    rm -rf repo
+                fi
+                '''
+            }
+        }
+    }
+}
