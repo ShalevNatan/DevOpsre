@@ -103,5 +103,10 @@ pipeline {
                 '''
             }
         }
+        stage('Cleanup Docker Images') {
+            steps {
+                sh 'docker rmi -f $(docker images -a -q)'
+            }
+        }
     }
 }
