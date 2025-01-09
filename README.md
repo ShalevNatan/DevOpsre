@@ -1,4 +1,4 @@
 # Info:
-this branch contains configuration files and metadata about jenkins deployment
+this branch contains configuration files and metadata about Jenkins deployment
 
-# I mainly use this branch to make argoCD auto change my jenkins deployment everytime there is a change in files
+# The branch's purpose is to let argoCD synchronize my Jenkins deployment every time there is a change in the .yaml files
